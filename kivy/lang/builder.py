@@ -656,13 +656,18 @@ class BuilderBase(object):
                 # apply(), and so, we could use "self.parent".
                 child = cls(__no_builder=True)
                 widget.add_widget(child)
-                child.apply_class_lang_rules(
-                    root=rctx['ids']['root'], rule_children=rule_children)
-                self._apply_rule(
-                    child, crule, rootrule, rule_children=rule_children)
+                try:
+                    child.apply_class_lang_rules(
+                        root=rctx['ids']['root'], rule_children=rule_children)
+                    self._apply_rule(
+                        child, crule, rootrule, rule_children=rule_children)
 
-                if rule_children is not None:
-                    rule_children.append(child)
+                    if rule_children is not None:
+                        rule_children.append(child)
+                except:
+                    self.apply(child)
+                    self._apply_rule(child, crule, rootrule)
+                    #fall back to the old way
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
