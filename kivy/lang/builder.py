@@ -66,7 +66,10 @@ def call_fn(args, instance, v):
     e_value = eval(value, idmap)
     if __debug__:
         trace('Lang: call_fn => value=%r' % (e_value, ))
-    setattr(element, key, e_value)
+    try:
+        setattr(element, key, e_value)
+    except:
+        pass
 
 
 def delayed_call_fn(args, instance, v):
