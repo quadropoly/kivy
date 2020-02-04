@@ -63,10 +63,10 @@ def call_fn(args, instance, v):
         trace('Lang: call_fn %s, key=%s, value=%r, %r' % (
             element, key, value, rule.value))
     rule.count += 1
-    e_value = eval(value, idmap)
     if __debug__:
         trace('Lang: call_fn => value=%r' % (e_value, ))
     try:
+        e_value = eval(value, idmap)
         setattr(element, key, e_value)
     except:
         pass
