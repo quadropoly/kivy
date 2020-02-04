@@ -195,13 +195,15 @@ class FileHandler(logging.Handler):
     def _write_message(self, record):
         if FileHandler.fd in (None, False):
             return
-
-        msg = self.format(record)
-        stream = FileHandler.fd
-        fs = "%s\n"
-        stream.write('[%-7s] ' % record.levelname)
-        stream.write(fs % msg)
-        stream.flush()
+        try:
+            msg = self.format(record)
+            stream = FileHandler.fd
+            fs = "%s\n"
+            stream.write('[%-7s] ' % record.levelname)
+            stream.write(fs % msg)
+            stream.flush()
+        except:
+            pass
 
     def emit(self, message):
         # during the startup, store the message in the history

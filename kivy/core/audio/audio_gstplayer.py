@@ -69,7 +69,8 @@ class SoundGstplayer(Sound):
         super(SoundGstplayer, self).play()
 
     def stop(self):
-        self.player.stop()
+        if self.player:
+            self.player.stop()
         super(SoundGstplayer, self).stop()
 
     def unload(self):
@@ -78,7 +79,8 @@ class SoundGstplayer(Sound):
             self.player = None
 
     def seek(self, position):
-        self.player.seek(position / self.length)
+        if self.player:
+            self.player.seek(position / float(self.length))
 
     def get_pos(self):
         return self.player.get_position()

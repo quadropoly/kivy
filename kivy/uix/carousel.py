@@ -621,11 +621,14 @@ class Carousel(StencilView):
         super(Carousel, self).on_touch_up(touch)
         # don't forget about grab event!
         for x in touch.grab_list[:]:
-            touch.grab_list.remove(x)
-            x = x()
-            if not x:
+            try:
+                touch.grab_list.remove(x)
+                x = x()
+                if not x:
+                    continue
+                touch.grab_current = x
+            except:
                 continue
-            touch.grab_current = x
             super(Carousel, self).on_touch_up(touch)
         touch.grab_current = None
 

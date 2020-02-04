@@ -796,12 +796,14 @@ class BuilderBase(object):
             # is this try/except still needed? yes, in case widget died in this
             # frame after the call was scheduled
             try:
-                call_fn(next_args[:-1], None, None)
+                if next_args:
+                    call_fn(next_args[:-1], None, None)
             except ReferenceError:
                 pass
-            args = next_args
-            next_args = args[-1]
-            args[-1] = None
+            if next_args:
+                args = next_args
+                next_args = args[-1]
+                args[-1] = None
         _delayed_start = None
 
     def unbind_widget(self, uid):

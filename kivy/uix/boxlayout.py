@@ -310,17 +310,20 @@ class BoxLayout(Layout):
         for i, x, y, w, h in self._iterate_layout(
                 [(c.size, c.size_hint, c.pos_hint, c.size_hint_min,
                   c.size_hint_max) for c in children]):
-            c = children[i]
-            c.pos = x, y
-            shw, shh = c.size_hint
-            if shw is None:
-                if shh is not None:
-                    c.height = h
-            else:
-                if shh is None:
-                    c.width = w
+            try:
+                c = children[i]
+                c.pos = x, y
+                shw, shh = c.size_hint
+                if shw is None:
+                    if shh is not None:
+                        c.height = h
                 else:
-                    c.size = (w, h)
+                    if shh is None:
+                        c.width = w
+                    else:
+                        c.size = (w, h)
+            except:
+                pass
 
     def add_widget(self, widget, index=0, canvas=None):
         widget.fbind('pos_hint', self._trigger_layout)

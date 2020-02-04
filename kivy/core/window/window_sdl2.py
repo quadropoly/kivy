@@ -237,6 +237,7 @@ class WindowSDL(WindowBase):
                 Logger.info(
                     'WindowSDL: App doesn\'t support pause mode, stop.')
                 stopTouchApp()
+                self.close()
                 return 0
 
             self._pause_loop = True
@@ -249,13 +250,13 @@ class WindowSDL(WindowBase):
                 self._pause_loop = False
                 app = App.get_running_app()
                 app.dispatch('on_resume')
-
+        """
         elif action == 'windowresized':
             self._size = largs
             self._win.resize_window(*self._size)
             # Force kivy to render the frame now, so that the canvas is drawn.
             EventLoop.idle()
-
+        """
         return 0
 
     def create_window(self, *largs):
@@ -340,8 +341,9 @@ class WindowSDL(WindowBase):
 
     def close(self):
         self._win.teardown_window()
-        super(WindowSDL, self).close()
-        self.initialized = False
+        #super(WindowSDL, self).close()
+        #self.initialized = False
+        self.dispatch('on_close')
 
     def maximize(self):
         if self._is_desktop:
@@ -698,8 +700,17 @@ class WindowSDL(WindowBase):
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
+        try:
+            from quadropoly_base import desk
+            if desk.orientation == 'horizontal':
+                self.size = max(self.size), min(self.size)      
+            elif desk.orientation == 'vertical':
+                self.size = min(self.size), max(self.size)
+        except:
+            pass
         self._win.resize_window(*self._size)
-        self.dispatch('on_pre_resize', *self.size)
+        #self.dispatch('on_pre_resize', *self.size)
+        self.dispatch('on_resize', *self.size)
 
     def do_pause(self):
         # should go to app pause mode (desktop style)
@@ -714,6 +725,7 @@ class WindowSDL(WindowBase):
         if not app.dispatch('on_pause'):
             Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
             stopTouchApp()
+            self.close()
             return
 
         # XXX FIXME wait for sdl resume

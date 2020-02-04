@@ -1258,7 +1258,7 @@ class TextInput(FocusBehavior, Widget):
         if not self._selection:
             return
         v = self._get_text(encode=False)
-        a, b = self._selection_from, self._selection_to
+        a, b = int(self._selection_from), int(self._selection_to)
         if a > b:
             a, b = b, a
         self.cursor = cursor = self.get_cursor_from_index(a)
@@ -1276,7 +1276,10 @@ class TextInput(FocusBehavior, Widget):
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selection
-        self._set_unredo_delsel(a, b, v[a:b], from_undo)
+        try:
+            self._set_unredo_delsel(a, b, v[a:b], from_undo)
+        except:
+            pass
         self.cancel_selection()
 
     def _set_unredo_delsel(self, a, b, substring, from_undo):
@@ -1294,7 +1297,7 @@ class TextInput(FocusBehavior, Widget):
         '''Update selection text and order of from/to if finished is True.
         Can be called multiple times until finished is True.
         '''
-        a, b = self._selection_from, self._selection_to
+        a, b = int(self._selection_from), int(self._selection_to)
         if a > b:
             a, b = b, a
         self._selection_finished = finished
@@ -2109,7 +2112,7 @@ class TextInput(FocusBehavior, Widget):
         miny = self.y + padding_bottom
         maxy = _top - padding_top
         draw_selection = self._draw_selection
-        a, b = self._selection_from, self._selection_to
+        a, b = int(self._selection_from), int(self._selection_to)
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index

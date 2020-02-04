@@ -706,7 +706,10 @@ cdef class EventDispatcher(ObjectWithUid):
             return True
 
         handler = getattr(self, event_type)
-        return handler(*largs, **kwargs)
+        if handler:
+            return handler(*largs, **kwargs)
+        else:
+            return True
 
     def dispatch_generic(self, basestring event_type, *largs, **kwargs):
         if event_type in self.__event_stack:

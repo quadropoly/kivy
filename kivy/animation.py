@@ -316,40 +316,41 @@ class Animation(EventDispatcher):
         transition = self._transition
         calculate = self._calculate
         for uid in list(widgets.keys()):
-            anim = widgets[uid]
-            widget = anim['widget']
+            if uid in widgets:
+                anim = widgets[uid]
+                widget = anim['widget']
 
-            if isinstance(widget, WeakProxy) and not len(dir(widget)):
-                # empty proxy, widget is gone. ref: #2458
-                self._widgets.pop(uid, None)
-                self._clock_uninstall()
-                if not self._widgets:
-                    self._unregister()
-                continue
+                if isinstance(widget, WeakProxy) and not len(dir(widget)):
+                    # empty proxy, widget is gone. ref: #2458
+                    self._widgets.pop(uid, None)
+                    self._clock_uninstall()
+                    if not self._widgets:
+                        self._unregister()
+                    continue
 
-            if anim['time'] is None:
-                anim['time'] = 0.
-            else:
-                anim['time'] += dt
+                if anim['time'] is None:
+                    anim['time'] = 0.
+                else:
+                    anim['time'] += dt
+ 
+                # calculate progression
+                if self._duration:
+                    progress = min(1., anim['time'] / self._duration)
+                else:
+                    progress = 1
+                t = transition(progress)
 
-            # calculate progression
-            if self._duration:
-                progress = min(1., anim['time'] / self._duration)
-            else:
-                progress = 1
-            t = transition(progress)
+                # apply progression on widget
+                for key, values in anim['properties'].items():
+                    a, b = values
+                    value = calculate(a, b, t)
+                    setattr(widget, key, value)
 
-            # apply progression on widget
-            for key, values in anim['properties'].items():
-                a, b = values
-                value = calculate(a, b, t)
-                setattr(widget, key, value)
+                self.dispatch('on_progress', widget, progress)
 
-            self.dispatch('on_progress', widget, progress)
-
-            # time to stop ?
-            if progress >= 1.:
-                self.stop(widget)
+                # time to stop ?
+                if progress >= 1.:
+                    self.stop(widget)
 
     def _calculate(self, a, b, t):
         _calculate = self._calculate

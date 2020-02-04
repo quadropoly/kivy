@@ -31,7 +31,10 @@ class ClipboardAndroid(ClipboardBase):
         PythonActivity._clipboard = None
 
     def get(self, mimetype='text/plain'):
-        return self._get(mimetype).encode('utf-8')
+        try:
+            return self._get(mimetype).encode('utf-8')
+        except:
+            return ""
 
     def put(self, data, mimetype='text/plain'):
         self._set(data, mimetype)
