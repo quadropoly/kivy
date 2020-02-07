@@ -488,6 +488,8 @@ class WindowSDL(WindowBase):
             if not self._pause_loop:
                 break
             event = self._win.poll()
+            if event is False:
+                continue
             if event is None:
                 continue
             # As dropfile is send was the app is still in pause.loop
