@@ -478,6 +478,7 @@ class WindowSDL(WindowBase):
         return x, y
 
     def mainloop(self):
+        EventLoop.idle()
         # for android/iOS, we don't want to have any event nor executing our
         # main loop while the pause is going on. This loop wait any event (not
         # handled by the event filter), and remove them from the queue.
@@ -588,8 +589,8 @@ class WindowSDL(WindowBase):
                 else:
                     ev()
 
-            elif action == 'windowmoved':
-                self.dispatch('on_move')
+            #elif action == 'windowmoved':
+            #    self.dispatch('on_move')
 
             elif action == 'windowrestored':
                 self.dispatch('on_restore')
