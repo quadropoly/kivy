@@ -6,21 +6,18 @@ from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy import platform
-from kivy.graphics.cgl cimport *
+from kivy.graphics.cgl import cgl_get_backend_name
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
-if not environ.get('KIVY_DOC_INCLUDE'):
-    is_desktop = Config.get('kivy', 'desktop') == '1'
-
 IF USE_WAYLAND:
-    from .window_info cimport WindowInfoWayland
+    from window_info cimport WindowInfoWayland
 
 IF USE_X11:
-    from .window_info cimport WindowInfoX11
+    from window_info cimport WindowInfoX11
 
 IF UNAME_SYSNAME == 'Windows':
-    from .window_info cimport WindowInfoWindows
+    from window_info cimport WindowInfoWindows
 
 cdef int _event_filter(void *userdata, SDL_Event *event) with gil:
     return (<_WindowSDL2Storage>userdata).cb_event_filter(event)
@@ -50,7 +47,7 @@ cdef class _WindowSDL2Storage:
         if not self.event_filter:
             return 1
         if event.type == SDL_WINDOWEVENT:
-            if is_desktop and event.window.event == SDL_WINDOWEVENT_RESIZED:
+            if event.window.event == SDL_WINDOWEVENT_RESIZED:
                 action = ('windowresized',
                           event.window.data1, event.window.data2)
                 return self.event_filter(*action)
@@ -74,28 +71,26 @@ cdef class _WindowSDL2Storage:
         raise RuntimeError(<bytes> SDL_GetError())
 
     def setup_window(self, x, y, width, height, borderless, fullscreen,
-                     resizable, state, gl_backend):
+                     resizable, state):
         self.win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 
-        if resizable:
-            self.win_flags |= SDL_WINDOW_RESIZABLE
-
-        if not USE_IOS:
+        if USE_IOS:
+            self.win_flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP
+        else:
+            if resizable:
+                self.win_flags |= SDL_WINDOW_RESIZABLE
             if borderless:
                 self.win_flags |= SDL_WINDOW_BORDERLESS
 
-        if USE_ANDROID:
-            # Android is handled separately because it is important to create the window with
-            # the same fullscreen setting as AndroidManifest.xml.
-            if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
+            if USE_ANDROID:
+                # Android is handled separately because it is important to create the window with
+                # the same fullscreen setting as AndroidManifest.xml.
+                if environ.get('P4A_IS_WINDOWED', 'True') == 'False':
+                    self.win_flags |= SDL_WINDOW_FULLSCREEN
+            elif fullscreen == 'auto':
+                self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
+            elif fullscreen is True:
                 self.win_flags |= SDL_WINDOW_FULLSCREEN
-        elif USE_IOS:
-            if environ.get('IOS_IS_WINDOWED', 'True') == 'False':
-                self.win_flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS
-        elif fullscreen == 'auto':
-            self.win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP
-        elif fullscreen is True:
-            self.win_flags |= SDL_WINDOW_FULLSCREEN
         if state == 'maximized':
             self.win_flags |= SDL_WINDOW_MAXIMIZED
         elif state == 'minimized':
@@ -139,7 +134,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
-        if gl_backend == "angle_sdl2":
+        if cgl_get_backend_name() == "angle_sdl2":
             Logger.info("Window: Activate GLES2/ANGLE context")
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 4)
             SDL_SetHint(SDL_HINT_VIDEO_WIN_D3DCOMPILER, "none")
@@ -228,7 +223,7 @@ cdef class _WindowSDL2Storage:
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
 
-        if gl_backend != "mock":
+        if cgl_get_backend_name() != "mock":
             self.ctx = SDL_GL_CreateContext(self.win)
             if not self.ctx:
                 self.die()
