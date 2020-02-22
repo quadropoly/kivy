@@ -700,6 +700,14 @@ class WindowSDL(WindowBase):
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self.size))
+        try:
+            from quadropoly_base import desk
+            if desk.orientation == 'horizontal':
+                self.size = max(self.size), min(self.size)      
+            elif desk.orientation == 'vertical':
+                self.size = min(self.size), max(self.size)
+        except:
+            pass
         self._win.resize_window(*self._size)
         self.dispatch('on_pre_resize', *self.size)
 
